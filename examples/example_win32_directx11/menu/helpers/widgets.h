@@ -125,6 +125,11 @@ inline bool button(ImVec2 pos, const char* text, bool active, float off, const c
         size = size2;
     }
 
+    // A fixed-size button centres its icon+label as a pair. Callers were passing a
+    // guessed left padding, which never lined up for both labels.
+    const bool fixed_width = (size2.x != 0.f);
+    const float content_x = fixed_width ? (size.x - (icon_size + text_size.x)) * 0.5f : off;
+
 
     auto curr = anim::animation(id_char, anim_t(clamp_out, 0.1f));
     static std::map<hash32_t, elastic_point> anim;
@@ -164,9 +169,9 @@ inline bool button(ImVec2 pos, const char* text, bool active, float off, const c
     const float text_y = (size.y - 16.f) * 0.5f;
 
     if (icon_size > 0.f)
-        draw->AddText(f::icons10, 10.f, bb.Min + ImVec2(off, icon_y), lerp(c::white48, c::white, curr->val), icon);
+        draw->AddText(f::icons10, 10.f, bb.Min + ImVec2(content_x, icon_y), lerp(c::white48, c::white, curr->val), icon);
 
-    draw->AddText(f::medium12, 14.f, bb.Min + ImVec2(off + icon_size, text_y), lerp(c::white48, c::white, curr->val), text);
+    draw->AddText(f::medium12, 14.f, bb.Min + ImVec2(content_x + icon_size, text_y), lerp(c::white48, c::white, curr->val), text);
 
     curr->active = active;
 

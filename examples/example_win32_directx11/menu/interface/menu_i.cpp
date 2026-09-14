@@ -380,15 +380,15 @@ public:
             //actions
             const bool can_load = loader::signed_in() && !switch_screen_a->active;
             ImVec2 out_size = ImVec2(0, 0);
-            if (button(bb.Min + ImVec2(16.f, 24.f), "Load", can_load, 160.f,
-                "B", anim, "load_button", out_size, ImVec2(386.f, 46.f)) && can_load)
+            if (button(bb.Min + ImVec2(16.f, 24.f), "Load", can_load, 150.f,
+                "B", anim, "load_button", out_size, ImVec2(386.f, 38.f)) && can_load)
             {
                 loader::begin(s_game, false);
                 next_screen = 3; switch_screen_a->active = true;
             }
 
-            if (button(bb.Min + ImVec2(16.f, 82.f), "Load with debugger", can_load, 104.f,
-                "C", anim, "debug_button", out_size, ImVec2(386.f, 46.f)) && can_load)
+            if (button(bb.Min + ImVec2(16.f, 72.f), "Load with debugger", can_load, 110.f,
+                "C", anim, "debug_button", out_size, ImVec2(386.f, 38.f)) && can_load)
             {
                 loader::begin(s_game, true);
                 next_screen = 3; switch_screen_a->active = true;
