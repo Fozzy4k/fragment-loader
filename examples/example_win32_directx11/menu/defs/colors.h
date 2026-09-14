@@ -1,6 +1,8 @@
 #pragma once
 #include <imgui.h>
 
+// fragment palette. Window/border values mirror source/gui/colors/colors.h so the
+// loader matches the overlay; the loader's near-black background is kept.
 namespace c
 {
     inline ImColor bg = ImColor(14, 15, 17, 255);
@@ -9,17 +11,17 @@ namespace c
     inline ImColor black = ImColor(0, 0, 0, 255);
     inline ImColor black48 = ImColor(0, 0, 0, 122);
     inline ImColor black24 = ImColor(0, 0, 0, 61);
-    inline ImColor primary = ImColor(137, 108, 255, 255);
-    inline ImColor primary48 = ImColor(137, 108, 255, 122);
-    inline ImColor primary24 = ImColor(137, 108, 255, 61);
-    inline ImColor primary12 = ImColor(137, 108, 255, 30);
-    inline ImColor primary6 = ImColor(137, 108, 255, 15);
-    inline ImColor primary0 = ImColor(137, 108, 255, 0);
-    inline ImColor secondary = ImColor(167, 146, 255, 255);
-    inline ImColor secondary12 = ImColor(167, 146, 255, 30);
-    inline ImColor secondary2 = ImColor(167, 146, 255, 5);
-    inline ImColor secondary0 = ImColor(167, 146, 255, 0);
-    inline ImColor highlight = ImColor(193, 178, 255, 255);
+    inline ImColor primary = ImColor(50, 120, 200, 255);      // #3278C8 - fragment accent
+    inline ImColor primary48 = ImColor(50, 120, 200, 122);
+    inline ImColor primary24 = ImColor(50, 120, 200, 61);
+    inline ImColor primary12 = ImColor(50, 120, 200, 30);
+    inline ImColor primary6 = ImColor(50, 120, 200, 15);
+    inline ImColor primary0 = ImColor(50, 120, 200, 0);
+    inline ImColor secondary = ImColor(88, 152, 220, 255);    // lighter blue for gradient tops
+    inline ImColor secondary12 = ImColor(88, 152, 220, 30);
+    inline ImColor secondary2 = ImColor(88, 152, 220, 5);
+    inline ImColor secondary0 = ImColor(88, 152, 220, 0);
+    inline ImColor highlight = ImColor(130, 185, 240, 255);
     inline ImColor white = ImColor(255, 255, 255, 255);
     inline ImColor white72 = ImColor(255, 255, 255, 182);
     inline ImColor white48 = ImColor(255, 255, 255, 122);

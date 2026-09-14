@@ -41,7 +41,7 @@
   <PropertyGroup>
     <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)$(Configuration)\obj\</IntDir>
-    <TargetName>fragment</TargetName>
+    <TargetName>FragmentLoader</TargetName>
     <ApplicationIcon>fragment.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
@@ -102,13 +102,16 @@
     <ClInclude Include="menu\helpers\anim\hash.hpp" />
     <ClInclude Include="menu\helpers\elastic.h" />
     <ClInclude Include="menu\helpers\helpers.h" />
+    <ClInclude Include="menu\helpers\json.hpp" />
     <ClInclude Include="menu\helpers\render.h" />
     <ClInclude Include="menu\helpers\restore.h" />
     <ClInclude Include="menu\helpers\stb_image.h" />
     <ClInclude Include="menu\helpers\texture.h" />
     <ClInclude Include="menu\helpers\widgets.h" />
     <ClInclude Include="menu\interface\elements_manager.h" />
+    <ClInclude Include="menu\interface\loader.h" />
     <ClInclude Include="menu\interface\menu_i.h" />
+    <ClInclude Include="menu\interface\net.h" />
     <ClInclude Include="menu\interface\rain.hpp" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -123,7 +126,9 @@
     <ClCompile Include="menu\helpers\anim\anim.cpp" />
     <ClCompile Include="menu\helpers\texture.cpp" />
     <ClCompile Include="menu\interface\elements_manager.cpp" />
+    <ClCompile Include="menu\interface\loader.cpp" />
     <ClCompile Include="menu\interface\menu_i.cpp" />
+    <ClCompile Include="menu\interface\net.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

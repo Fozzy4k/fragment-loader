@@ -1,10 +1,5 @@
-// Dear ImGui: standalone example application for DirectX 11
+// fragment loader - Dear ImGui + DirectX 11
 
-// Learn about Dear ImGui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/ folder).
-// - Introduction, links and more at the top of imgui.cpp
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h"
 #include "imgui_impl_win32.h"
@@ -12,9 +7,12 @@
 #include <d3d11.h>
 #include <tchar.h>
 #include <algorithm>
+#include <dwmapi.h>
 
+#include "resource.h"
 #include "menu/interface/menu_i.h"
 #include "menu/interface/elements_manager.h"
+#include "menu/interface/loader.h"
 #include "menu/helpers/widgets.h"
 #include "menu/bytes/games.h"
 
@@ -33,50 +31,18 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-void callback(int& selected)
+// Drives the load sequence. Called every frame while the loading screen is up;
+// the loader owns all of the real work (auth, update, launch, watch).
+void loading_callback(int& selected)
 {
-    //replace your code | This is example
-    static float timer_work{};
-
-    if (MGR->locked)//menu draw notify now
-        return;
-    
-    if (timer_work > 1.f)
-    {
-        timer_work = 0.f;
-
-        if (selected == 0)
-        {
-            MGR->status = E_SUCCESS; MGR->notify_desc = "Took 12 seconds to load.";
-        }
-        else if (selected == 1)
-        {
-            MGR->status = E_ERROR; MGR->notify_desc = "Failed to load pak01_014.vpk";
-        }
-        else if (selected >= 2)
-            MGR->status = E_NONE;//exit without notification
-    }
-    else
-    {
-        timer_work += 0.001f;
-        MGR->status = E_LOADING;
-    }
-    if (selected == 0)
-        MGR->loading_module = "Loading: cs_interface.dll";
-    else if (selected == 1)
-        MGR->loading_module = "Loading: dota_interface.dll";
-    else if (selected >= 2)
-        MGR->loading_module = "Loading: kernel_interface.dll";
+    loader::tick(selected);
 }
 
-#include <dwmapi.h>
-#include <codecvt>
-#include <iomanip>
 HWND hwnd;
 RECT rc;
 
-float WIDTH = 320; // Loader Size X
-float HEIGHT = 416; // Loader Size Y
+float WIDTH = 420;   // loader size X
+float HEIGHT = 560;  // loader size Y
 
 ImVec2 menu_size = { WIDTH, HEIGHT };
 
@@ -87,29 +53,31 @@ void move_window()
     if (ImGui::InvisibleButton("Move_detector", ImVec2(menu_size)) || ImGui::IsItemActive())
     {
         GetWindowRect(hwnd, &rc);
-        MoveWindow(hwnd, rc.left + ImGui::GetMouseDragDelta().x, rc.top + ImGui::GetMouseDragDelta().y, menu_size.x, menu_size.y, TRUE);
+        MoveWindow(hwnd, rc.left + ImGui::GetMouseDragDelta().x, rc.top + ImGui::GetMouseDragDelta().y, (int)menu_size.x, (int)menu_size.y, TRUE);
     }
 }
 
 // Main code
 int main(int, char**)
 {
+    const HINSTANCE instance = ::GetModuleHandleW(nullptr);
+
     WNDCLASSEXW wc;
     wc.cbSize = sizeof(WNDCLASSEXW);
     wc.style = CS_CLASSDC;
     wc.lpfnWndProc = WndProc;
     wc.cbClsExtra = NULL;
     wc.cbWndExtra = NULL;
-    wc.hInstance = nullptr;
-    wc.hIcon = LoadIcon(0, IDI_APPLICATION);
+    wc.hInstance = instance;
+    wc.hIcon = (HICON)::LoadImageW(instance, MAKEINTRESOURCEW(IDI_FRAGMENT), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_SHARED);
     wc.hCursor = LoadCursor(0, IDC_ARROW);
     wc.hbrBackground = nullptr;
-    wc.lpszMenuName = L"ImGui";
-    wc.lpszClassName = L"Example";
-    wc.hIconSm = LoadIcon(0, IDI_APPLICATION);
+    wc.lpszMenuName = nullptr;
+    wc.lpszClassName = L"fragment";
+    wc.hIconSm = (HICON)::LoadImageW(instance, MAKEINTRESOURCEW(IDI_FRAGMENT), IMAGE_ICON, 16, 16, LR_SHARED);
 
     RegisterClassExW(&wc);
-    hwnd = CreateWindowExW(NULL, wc.lpszClassName, L"Loader", WS_POPUP, (GetSystemMetrics(SM_CXSCREEN) / 2) - (WIDTH / 2), (GetSystemMetrics(SM_CYSCREEN) / 2) - (HEIGHT / 2), WIDTH, HEIGHT, 0, 0, 0, 0);
+    hwnd = CreateWindowExW(NULL, wc.lpszClassName, L"fragment", WS_POPUP, (GetSystemMetrics(SM_CXSCREEN) / 2) - ((int)WIDTH / 2), (GetSystemMetrics(SM_CYSCREEN) / 2) - ((int)HEIGHT / 2), (int)WIDTH, (int)HEIGHT, 0, 0, instance, 0);
 
     SetWindowLongA(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 255, LWA_ALPHA);
@@ -117,7 +85,6 @@ int main(int, char**)
     MARGINS margins = { -1 };
     DwmExtendFrameIntoClientArea(hwnd, &margins);
 
-    POINT mouse;
     rc = { 0 };
     GetWindowRect(hwnd, &rc);
 
@@ -128,7 +95,7 @@ int main(int, char**)
         ::UnregisterClassW(wc.lpszClassName, wc.hInstance);
         return 1;
     }
-    SetWindowRgn(hwnd, CreateRoundRectRgn(0, 0, WIDTH, HEIGHT, 28, 28), FALSE);
+    SetWindowRgn(hwnd, CreateRoundRectRgn(0, 0, (int)WIDTH, (int)HEIGHT, 28, 28), FALSE);
     // Show the window
     ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
@@ -143,33 +110,19 @@ int main(int, char**)
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
-   
+
     ImVec4 clear_color = ImVec4(0.f, 0.f, 0.f, 0.f);
 
     c_menu* menu = create_menu();
     menu->setup_data(g_pd3dDevice);
     menu->setup_imgui();
 
-    //Games setup
-    {
-        MGR->add_game("CS2", "Gain full map awareness. \nOutmaneuver opponents with \nenhanced vision and precision.",
-            true, CS2, sizeof CS2);
+    // Single supported game.
+    MGR->add_game("Roblox", "Full ESP, aim assistance and a Lua\nscripting runtime, kept up to date\nand undetected.",
+        true, Roblox, sizeof Roblox);
 
-        MGR->add_game("Dota 2", "Execute perfect spell combos. \nAutomate critical actions for \nflawless teamfight execution.",
-            false, Dota_2, sizeof Dota_2);
-
-        MGR->add_game("DayZ", "Track all survivors and pinpoint \nvital supplies. Own the \napocalypse, outlast everyone.",
-            true, DayZ, sizeof DayZ);
-
-        MGR->add_game("Rust", "Zero recoil, pinpoint accuracy. Win \nevery PvP encounter and defend \nyour territory fiercely.",
-            false, Rust, sizeof Rust);
-
-        MGR->add_game("PUBG", "Full enemy and loot radar. Gear up \nfast, anticipate every move, and \nclaim your dinner.",
-            false, PUBG, sizeof PUBG);
-
-        //callback for loading & notify
-        MGR->callback = callback;
-    }
+    //callback for loading & notify
+    MGR->callback = loading_callback;
 
     // Main loop
     bool done = false;
@@ -205,7 +158,7 @@ int main(int, char**)
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
-        
+
         menu->draw();
 
         menu->end();
@@ -219,7 +172,6 @@ int main(int, char**)
 
         // Present
         HRESULT hr = g_pSwapChain->Present(1, 0);   // Present with vsync
-        //HRESULT hr = g_pSwapChain->Present(0, 0); // Present without vsync
         g_SwapChainOccluded = (hr == DXGI_STATUS_OCCLUDED);
     }
 
@@ -257,7 +209,6 @@ bool CreateDeviceD3D(HWND hWnd)
     sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 
     UINT createDeviceFlags = 0;
-    //createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
     D3D_FEATURE_LEVEL featureLevel;
     const D3D_FEATURE_LEVEL featureLevelArray[2] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_10_0, };
     HRESULT res = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, createDeviceFlags, featureLevelArray, 2, D3D11_SDK_VERSION, &sd, &g_pSwapChain, &g_pd3dDevice, &featureLevel, &g_pd3dDeviceContext);
@@ -295,10 +246,6 @@ void CleanupRenderTarget()
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Win32 message handler
-// You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-// - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-// - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
