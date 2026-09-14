@@ -117,6 +117,9 @@ int main(int, char**)
     menu->setup_data(g_pd3dDevice);
     menu->setup_imgui();
 
+    // Extracts the embedded overlay and restores a remembered licence session.
+    loader::initialize();
+
     // Single supported game.
     MGR->add_game("Roblox", "Full ESP, aim assistance and a Lua\nscripting runtime, kept up to date\nand undetected.",
         true, Roblox, sizeof Roblox);
@@ -160,6 +163,10 @@ int main(int, char**)
         ImGui::NewFrame();
 
         menu->draw();
+
+        // Runs every frame, not just while the loading screen is up, so the
+        // silent-mode close still fires after the menu advances.
+        loader::poll();
 
         menu->end();
 

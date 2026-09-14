@@ -4,6 +4,7 @@
 #include "../helpers/json.hpp"
 #include "elements_manager.h"
 #include "menu_i.h"
+#include "../../resource.h"
 
 #include <Windows.h>
 #include <TlHelp32.h>
@@ -41,6 +42,7 @@ namespace loader
             std::int64_t expires_at = 0;
             std::atomic<bool> signed_in{ false };
             std::atomic<bool> auth_busy{ false };
+            std::atomic<bool> restoring{ true };
             std::atomic<bool> load_active{ false };
             std::atomic<bool> load_finished{ false };
             std::atomic<bool> load_ok{ false };
@@ -63,17 +65,63 @@ namespace loader
             return std::filesystem::path(path).parent_path().wstring();
         }
 
-        std::filesystem::path fragment_exe_path()
-        {
-            return std::filesystem::path(loader_directory()) / L"fragment.exe";
-        }
-
-        std::filesystem::path session_path()
+        // The overlay lives with the rest of fragment's data, not beside the
+        // loader, so the loader itself stays a single self-contained file.
+        std::filesystem::path fragment_root()
         {
             wchar_t base[MAX_PATH]{};
             const DWORD length = ::GetEnvironmentVariableW(L"APPDATA", base, MAX_PATH);
             const std::filesystem::path root = (length > 0) ? std::filesystem::path(base) : std::filesystem::temp_directory_path();
-            return root / L"fragment" / L"loader_session.dat";
+            return root / L"fragment";
+        }
+
+        std::filesystem::path fragment_exe_path()
+        {
+            return fragment_root() / L"fragment.exe";
+        }
+
+        // Writes the payload embedded in this exe to disk when it is missing or
+        // does not match what we were built with.
+        bool extract_embedded_payload()
+        {
+            const HMODULE module = ::GetModuleHandleW(nullptr);
+            const HRSRC resource = ::FindResourceW(module, MAKEINTRESOURCEW(IDR_PAYLOAD), RT_RCDATA);
+            if (!resource)
+            {
+                return false;
+            }
+            const DWORD size = ::SizeofResource(module, resource);
+            const HGLOBAL loaded = ::LoadResource(module, resource);
+            const void* bytes = loaded ? ::LockResource(loaded) : nullptr;
+            if (!bytes || size == 0)
+            {
+                return false;
+            }
+
+            const std::string embedded(static_cast<const char*>(bytes), size);
+            const auto target = fragment_exe_path();
+            std::error_code ec;
+            if (std::filesystem::exists(target, ec) && std::filesystem::file_size(target, ec) == size && !ec)
+            {
+                // Same size is not proof, but hashing 12 MB on every launch is
+                // wasted work; the update check below still compares hashes.
+                return true;
+            }
+
+            std::filesystem::create_directories(target.parent_path(), ec);
+            std::ofstream output(target, std::ios::binary | std::ios::trunc);
+            if (!output.good())
+            {
+                return false;
+            }
+            output.write(embedded.data(), static_cast<std::streamsize>(embedded.size()));
+            output.close();
+            return output.good();
+        }
+
+        std::filesystem::path session_path()
+        {
+            return fragment_root() / L"loader_session.dat";
         }
 
         // XOR with a key derived from the machine guid; the same idea fragment
@@ -149,6 +197,7 @@ namespace loader
         struct verify_result
         {
             bool ok = false;
+            bool definitive = false;   // server denied: the stored session is dead
             std::string error;
             std::string status;
             std::string plan;
@@ -224,6 +273,10 @@ namespace loader
 
             if (out.status != "ok")
             {
+                // Denials that mean the stored session can never work again.
+                out.definitive = out.status == "bad_key" || out.status == "banned" || out.status == "expired"
+                    || out.status == "hwid_mismatch" || out.status == "session_invalid" || out.status == "bad_format";
+
                 if (out.status == "bad_format") out.error = "invalid key format";
                 else if (out.status == "bad_key") out.error = "key not found";
                 else if (out.status == "expired") out.error = "this key has expired";
@@ -366,7 +419,7 @@ namespace loader
             {
                 startup.dwFlags = STARTF_USESHOWWINDOW;
                 startup.wShowWindow = SW_SHOWNORMAL;
-                if (!::CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, CREATE_NEW_CONSOLE, nullptr, loader_directory().c_str(), &startup, &process))
+                if (!::CreateProcessW(nullptr, command.data(), nullptr, nullptr, FALSE, CREATE_NEW_CONSOLE, nullptr, fragment_root().c_str(), &startup, &process))
                 {
                     set_error("could not start fragment.exe");
                     return false;
@@ -394,7 +447,7 @@ namespace loader
                 startup.hStdInput = ::GetStdHandle(STD_INPUT_HANDLE);
 
                 const BOOL started = ::CreateProcessW(nullptr, command.data(), nullptr, nullptr, TRUE,
-                    CREATE_NO_WINDOW, nullptr, loader_directory().c_str(), &startup, &process);
+                    CREATE_NO_WINDOW, nullptr, fragment_root().c_str(), &startup, &process);
                 ::CloseHandle(write_pipe);
                 if (!started)
                 {
@@ -487,12 +540,15 @@ namespace loader
 
     void initialize()
     {
+        extract_embedded_payload();
+
         std::thread([]()
         {
             const std::string hwid = net::machine_hwid();
             const std::string saved = load_session();
             if (hwid.empty() || saved.empty())
             {
+                g.restoring.store(false);
                 return;
             }
             const auto result = verify("session", saved, hwid, net::random_hex(12));
@@ -507,11 +563,24 @@ namespace loader
                 g.expires_at = result.expires_at;
                 g.signed_in.store(true);
             }
-            else
+            else if (result.definitive)
             {
+                // Only a signed denial invalidates the stored session. A network
+                // blip or clock skew must not force the user to retype the key.
                 store_session({});
             }
+            g.restoring.store(false);
         }).detach();
+    }
+
+    void poll()
+    {
+        std::lock_guard lock(g.mutex);
+        if (g.close_when_done.load() && std::chrono::steady_clock::now() >= g.close_at)
+        {
+            g.close_when_done.store(false);
+            ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
+        }
     }
 
     void sign_in_async(const std::string& key)
@@ -548,6 +617,7 @@ namespace loader
     }
 
     bool sign_in_busy() { return g.auth_busy.load(); }
+    bool restoring_session() { return g.restoring.load(); }
     bool signed_in() { return g.signed_in.load(); }
 
     std::string auth_error()
@@ -671,18 +741,6 @@ namespace loader
 
     void tick(int& game_index)
     {
-        // Silent mode closes the loader once fragment is attached so only the
-        // overlay is left on screen.
-        {
-            std::lock_guard lock(g.mutex);
-            if (g.close_when_done.load() && std::chrono::steady_clock::now() >= g.close_at)
-            {
-                g.close_when_done.store(false);
-                ::PostMessageW(hwnd, WM_CLOSE, 0, 0);
-                return;
-            }
-        }
-
         if (!g.load_active.load())
         {
             return;

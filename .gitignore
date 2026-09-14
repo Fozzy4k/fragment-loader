@@ -13,6 +13,9 @@ examples/*/Debug/*
 examples/*/Release/*
 examples/*/x64/*
 
+## Loader payload (staged from the fragment repo by the PreBuildEvent)
+examples/example_win32_directx11/payload/
+
 ## Visual Studio artifacts
 .vs
 ipch

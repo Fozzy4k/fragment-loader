@@ -2,6 +2,10 @@
 
 IDI_FRAGMENT ICON "fragment.ico"
 
+// The overlay shipped inside the loader, so users download a single file.
+// Staged by the PreBuildEvent in the project file (see payload\README.md).
+IDR_PAYLOAD RCDATA "payload\\fragment.exe"
+
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION 1,0,0,0
  PRODUCTVERSION 1,0,0,0

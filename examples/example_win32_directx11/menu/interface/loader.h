@@ -10,9 +10,13 @@ namespace loader
     // still valid, so the user is not asked for a key again.
     void initialize();
 
+    // Called every frame from the main loop; handles the silent-mode close.
+    void poll();
+
     // Licence
     void sign_in_async(const std::string& key);
     bool sign_in_busy();
+    bool restoring_session();
     bool signed_in();
     std::string auth_error();
 

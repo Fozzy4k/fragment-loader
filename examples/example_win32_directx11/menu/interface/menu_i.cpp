@@ -360,11 +360,11 @@ public:
             const auto& p = ::GetWindowPos() + ImVec2(1.f, 1.f);
             const ImVec2& region = ::GetContentRegionMax() - ImVec2(2.f, 2.f);
 
-            //account panel
-            ImRect bb = ImRect(ImVec2(p.x, p.y + 248.f), ImVec2(p.x + region.x, p.y + region.y));
+            //account panel, anchored to the bottom of the taller window
+            ImRect bb = ImRect(ImVec2(p.x, p.y + 430.f), ImVec2(p.x + region.x, p.y + region.y));
             draw->AddRectFilled(bb.Min, bb.Max, a(c::bg, switch_screen_a->inverse()), 16.f, ImDrawFlags_RoundCornersBottom);
 
-            ImRect bbShadow = ImRect(ImVec2(p.x, p.y + 198.f), ImVec2(p.x + region.x, p.y + 248.f));
+            ImRect bbShadow = ImRect(ImVec2(p.x, p.y + 380.f), ImVec2(p.x + region.x, p.y + 430.f));
             int vert_start_idx = draw->VtxBuffer.Size;
             draw->AddRectFilled(bbShadow.Min, bbShadow.Max, IM_COL32_WHITE);
             int vert_end_idx = draw->VtxBuffer.Size;
@@ -373,9 +373,9 @@ public:
 
             //account summary
             const float center_x = p.x + region.x / 2.f;
-            text_center(ImVec2(center_x, p.y + 124.f), "welcome back", a(c::white, anim));
-            text_center(ImVec2(center_x, p.y + 148.f), ("key: " + loader::remaining_text() + " left").c_str(), a(c::white48, anim), 12.f, f::regular10);
-            text_center(ImVec2(center_x, p.y + 166.f), ("last updated: " + loader::last_updated_text()).c_str(), a(c::white48, anim), 12.f, f::regular10);
+            text_center(ImVec2(center_x, p.y + 128.f), "welcome back", a(c::white, anim));
+            text_center(ImVec2(center_x, p.y + 152.f), ("key: " + loader::remaining_text() + " left").c_str(), a(c::white48, anim), 12.f, f::regular10);
+            text_center(ImVec2(center_x, p.y + 170.f), ("last updated: " + loader::last_updated_text()).c_str(), a(c::white48, anim), 12.f, f::regular10);
 
             //actions
             const bool can_load = loader::signed_in() && !switch_screen_a->active;
@@ -419,26 +419,33 @@ public:
         const float center = bb.GetWidth() / 2.f;
 
         //glow
-        draw->AddShadowCircle(bb.Min + ImVec2(center, 84.f), 18.f, a(c::primary, login_alpha), 70.f + 180.f * pulse->extra(), ImVec2(0, 0));
+        draw->AddShadowCircle(bb.Min + ImVec2(center, 168.f), 18.f, a(c::primary, login_alpha * 0.9f), 60.f + 40.f * pulse->extra(), ImVec2(0, 0));
 
         //logo, kept square - the fragment mark is 1:1
         float logo_y = switch_screen_a->val * 108.f;
         constexpr float logo_size = 84.f;
         draw->AddImage(ImTextureID(tex::main_logo),
-            bb.Min + ImVec2(center - logo_size / 2.f, 34.f - logo_y),
-            bb.Min + ImVec2(center + logo_size / 2.f, 34.f + logo_size - logo_y));
+            bb.Min + ImVec2(center - logo_size / 2.f, 108.f - logo_y),
+            bb.Min + ImVec2(center + logo_size / 2.f, 108.f + logo_size - logo_y));
 
-        text_center(bb.Min + ImVec2(center, 160.f), "welcome back", a(c::white, login_alpha));
-        text_center(bb.Min + ImVec2(center, 182.f), "Enter your licence key to continue.", a(c::white48, login_alpha), 12.f, f::regular10);
+        text_center(bb.Min + ImVec2(center, 220.f), "welcome back", a(c::white, login_alpha));
+
+        if (loader::restoring_session())
+        {
+            text_center(bb.Min + ImVec2(center, 250.f), "restoring your session...", a(c::white48, login_alpha), 12.f, f::regular10);
+            return;
+        }
+
+        text_center(bb.Min + ImVec2(center, 242.f), "Enter your licence key to continue.", a(c::white48, login_alpha), 12.f, f::regular10);
 
         //licence key
-        input(draw, key, bb.Min + ImVec2(32.f, 214.f), "d", "licence key", login_alpha);
+        input(draw, key, bb.Min + ImVec2(32.f, 278.f), "d", "licence key", login_alpha);
 
         const bool busy = loader::sign_in_busy();
         const std::string button_text = busy ? "Checking..." : "Continue";
 
         ImVec2 out_size = ImVec2(0, 0);
-        if (button(bb.Min + ImVec2(32.f, 262.f), button_text.c_str(), !busy, 56.f,
+        if (button(bb.Min + ImVec2(32.f, 326.f), button_text.c_str(), !busy, 56.f,
             "g", login_alpha, "login_button", out_size, ImVec2(256.f, 30.f)))
         {
             if (!busy)
@@ -450,7 +457,7 @@ public:
         const std::string error = loader::auth_error();
         if (!busy && !error.empty())
         {
-            text_center(bb.Min + ImVec2(center, 306.f), error.c_str(), a(ImColor(255, 108, 110, 255), login_alpha), 12.f, f::regular10);
+            text_center(bb.Min + ImVec2(center, 370.f), error.c_str(), a(ImColor(255, 108, 110, 255), login_alpha), 12.f, f::regular10);
         }
 
         //advance as soon as the licence checks out

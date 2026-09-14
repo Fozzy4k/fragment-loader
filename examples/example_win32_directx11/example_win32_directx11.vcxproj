@@ -39,8 +39,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(ProjectDir)$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)$(Configuration)\obj\</IntDir>
+    <OutDir>$(ProjectDir)..\..\build\</OutDir>
+    <IntDir>$(ProjectDir)..\..\build\obj\$(Configuration)\</IntDir>
     <TargetName>FragmentLoader</TargetName>
     <ApplicationIcon>fragment.ico</ApplicationIcon>
   </PropertyGroup>
@@ -61,6 +61,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <PreBuildEvent>
+      <Command>if exist "$(ProjectDir)..\..\..\fragment\build\fragment.exe" copy /Y "$(ProjectDir)..\..\..\fragment\build\fragment.exe" "$(ProjectDir)payload\fragment.exe" &gt;nul
+if not exist "$(ProjectDir)payload\fragment.exe" ( echo ERROR: no loader payload. Build the fragment repo so build\fragment.exe exists, or place fragment.exe in $(ProjectDir)payload\. &amp; exit /b 1 )</Command>
+      <Message>Staging fragment.exe payload</Message>
+    </PreBuildEvent>
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
