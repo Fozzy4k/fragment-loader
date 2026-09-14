@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="imgui">
+      <UniqueIdentifier>{0587d7a3-f2ce-4d56-b84f-a0005d3bfce6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources">
+      <UniqueIdentifier>{08e36723-ce4f-4cff-9662-c40801cf1acf}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\imconfig.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\imgui.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\imgui_internal.h">
+      <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\backends\imgui_impl_win32.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\backends\imgui_impl_dx11.h">
+      <Filter>sources</Filter>
+    </ClInclude>
+    <ClInclude Include="menu\interface\menu_i.h" />
+    <ClInclude Include="menu\helpers\anim\anim.h" />
+    <ClInclude Include="menu\helpers\anim\hash.hpp" />
+    <ClInclude Include="menu\helpers\helpers.h" />
+    <ClInclude Include="menu\defs\textures.h" />
+    <ClInclude Include="menu\defs\colors.h" />
+    <ClInclude Include="menu\bytes\bg.h" />
+    <ClInclude Include="menu\bytes\loadbg.h" />
+    <ClInclude Include="menu\defs\fonts.h" />
+    <ClInclude Include="menu\bytes\medium.h" />
+    <ClInclude Include="menu\bytes\icon.h" />
+    <ClInclude Include="menu\bytes\logo.h" />
+    <ClInclude Include="menu\interface\elements_manager.h" />
+    <ClInclude Include="menu\helpers\restore.h" />
+    <ClInclude Include="menu\helpers\render.h" />
+    <ClInclude Include="menu\helpers\widgets.h" />
+    <ClInclude Include="menu\bytes\regular.h" />
+    <ClInclude Include="menu\helpers\elastic.h" />
+    <ClInclude Include="menu\bytes\games.h" />
+    <ClInclude Include="menu\bytes\noise.h" />
+    <ClInclude Include="menu\interface\rain.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\imgui.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\imgui_demo.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\imgui_draw.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\imgui_widgets.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\backends\imgui_impl_win32.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\backends\imgui_impl_dx11.cpp">
+      <Filter>sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\imgui_tables.cpp">
+      <Filter>imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="menu\interface\menu_i.cpp" />
+    <ClCompile Include="menu\helpers\anim\anim.cpp" />
+    <ClCompile Include="menu\interface\elements_manager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.txt" />
+    <None Include="..\..\misc\debuggers\imgui.natvis">
+      <Filter>imgui</Filter>
+    </None>
+    <None Include="..\..\misc\debuggers\imgui.natstepfilter">
+      <Filter>imgui</Filter>
+    </None>
+  </ItemGroup>
+</Project>
