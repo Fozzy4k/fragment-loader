@@ -38,51 +38,52 @@ inline void text_center(ImVec2 pos, const char* text, ImColor col = c::white, fl
     ImVec2 t_pos = ImVec2(pos + ImVec2(-text_size.x / 2.f + offset, 0.f));
     draw->AddText(font, f_sz, t_pos, col, text);
 }
-inline void input(ImDrawList* draw, char* buf, ImVec2 p0, const char* icon, const char* text, float ex_a = 1.f)
+inline void input(ImDrawList* draw, char* buf, ImVec2 p0, const char* icon, const char* text, float ex_a = 1.f, ImVec2 size = ImVec2(256.f, 30.f))
 {
     auto curr = anim::animation((std::string("input##") + text).c_str(), anim_t(clamp_out, 0.1f));
     const auto& p = ::GetWindowPos() + ImVec2(1.f, 1.f);
 
-    ImVec2 size = ImVec2(256.f, 30.f);
     ImRect bb = ImRect(p0, p0 + size);
+    const float text_y = (size.y - 14.f) * 0.5f;
 
     if (std::string(buf).empty())
     {
-        draw->AddText(f::medium12, 14.f, ImVec2(p0.x + 10.f, p0.y + 7.f), a(c::white48, curr->inverse() * ex_a), text);
+        draw->AddText(f::medium12, 14.f, ImVec2(p0.x + 10.f, p0.y + text_y), a(c::white48, curr->inverse() * ex_a), text);
     }
 
     //bg & border
     draw->AddRectFilled(bb.Min, bb.Max, a(lerp(c::white3, c::white6, curr->val), ex_a), 8.f);
     draw->AddRect(bb.Min, bb.Max, a(lerp(c::white1, c::white4, curr->val), ex_a), 8.f);
 
-    //bg & border & icon
+    //icon cell, sized to the field height
     {
+        const float cell = size.y;
         ImColor icon_bg1 = a(lerp(c::white2, c::grad.f, curr->val), ex_a);
         ImColor icon_bg2 = a(lerp(c::white2, c::grad.s, curr->val), ex_a);
         int vert_start_idx = draw->VtxBuffer.Size;
-        draw->AddRectFilled(bb.Max - ImVec2(size.y, size.y), bb.Max, IM_COL32_WHITE, 7.f);
+        draw->AddRectFilled(bb.Max - ImVec2(cell, cell), bb.Max, IM_COL32_WHITE, 7.f);
         int vert_end_idx = draw->VtxBuffer.Size;
         ShadeVertsLinearGradY(draw, vert_start_idx, vert_end_idx,
-            bb.Max - ImVec2(size.y, size.y), bb.Max, icon_bg1, icon_bg2);
+            bb.Max - ImVec2(cell, cell), bb.Max, icon_bg1, icon_bg2);
 
         ImColor icon_br1 = a(lerp(c::primary0, c::highlight, curr->val), ex_a);
         ImColor icon_br2 = a(lerp(c::primary0, c::grad.s, curr->val), ex_a);
         vert_start_idx = draw->VtxBuffer.Size;
-        draw->AddRect(bb.Max - ImVec2(size.y, size.y), bb.Max, IM_COL32_WHITE, 7.f);
+        draw->AddRect(bb.Max - ImVec2(cell, cell), bb.Max, IM_COL32_WHITE, 7.f);
         vert_end_idx = draw->VtxBuffer.Size;
         ShadeVertsLinearGradY(draw, vert_start_idx, vert_end_idx,
-            bb.Max - ImVec2(size.y, size.y), bb.Max, icon_br1, icon_br2);
+            bb.Max - ImVec2(cell, cell), bb.Max, icon_br1, icon_br2);
 
-        text_center(bb.Max + ImVec2(-size.y / 2.f, -size.y + 8.f), icon, a(lerp(c::white48, c::white, curr->val), ex_a), 12.f, f::icons12, icon == "d" ? 1.f : 0.f);//fixing a disproportionate icon
+        text_center(bb.Max + ImVec2(-cell / 2.f, -(cell + 12.f) * 0.5f), icon, a(lerp(c::white48, c::white, curr->val), ex_a), 12.f, f::icons12, icon == "d" ? 1.f : 0.f);//fixing a disproportionate icon
     }
 
-    ImGui::SetCursorPos(p0 - p + ImVec2(7.f, 5.f));
-    ::SetNextItemWidth(size.x - 37.f);
+    ImGui::SetCursorPos(p0 - p + ImVec2(10.f, text_y));
+    ::SetNextItemWidth(size.x - size.y - 12.f);
     ::PushFont(f::medium12);
     ::PushStyleColor(ImGuiCol_Text, a(c::white, ex_a).Value);
     ::PushStyleColor(ImGuiCol_FrameBg, ImVec4(255.f / 255.f, 255.f / 255.f, 255.f / 255.f, 0.f));
     ::PushStyleColor(ImGuiCol_TextSelectedBg, a(c::primary, ex_a).Value);
-    ::InputText((std::string("##") + text).c_str(), buf, 64);
+    ::InputText((std::string("##") + text).c_str(), buf, 96);
     ::PopStyleColor(3);
     ::PopFont();
 

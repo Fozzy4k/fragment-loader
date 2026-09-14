@@ -418,35 +418,32 @@ public:
         ImRect bb = ImRect(ImVec2(p.x, p.y), ImVec2(p.x + region.x, p.y + region.y));
         const float center = bb.GetWidth() / 2.f;
 
-        //glow
-        draw->AddShadowCircle(bb.Min + ImVec2(center, 168.f), 18.f, a(c::primary, login_alpha * 0.9f), 60.f + 40.f * pulse->extra(), ImVec2(0, 0));
-
-        //logo, kept square - the fragment mark is 1:1
+        //glow is provided by the background art; an extra shadow circle only smeared
         float logo_y = switch_screen_a->val * 108.f;
-        constexpr float logo_size = 84.f;
+        constexpr float logo_size = 110.f;
         draw->AddImage(ImTextureID(tex::main_logo),
-            bb.Min + ImVec2(center - logo_size / 2.f, 108.f - logo_y),
-            bb.Min + ImVec2(center + logo_size / 2.f, 108.f + logo_size - logo_y));
+            bb.Min + ImVec2(center - logo_size / 2.f, 138.f - logo_y),
+            bb.Min + ImVec2(center + logo_size / 2.f, 138.f + logo_size - logo_y));
 
-        text_center(bb.Min + ImVec2(center, 220.f), "welcome back", a(c::white, login_alpha));
+        text_center(bb.Min + ImVec2(center, 282.f), "welcome back", a(c::white, login_alpha), 16.f);
 
         if (loader::restoring_session())
         {
-            text_center(bb.Min + ImVec2(center, 250.f), "restoring your session...", a(c::white48, login_alpha), 12.f, f::regular10);
+            text_center(bb.Min + ImVec2(center, 312.f), "restoring your session...", a(c::white48, login_alpha), 12.f, f::regular10);
             return;
         }
 
-        text_center(bb.Min + ImVec2(center, 242.f), "Enter your licence key to continue.", a(c::white48, login_alpha), 12.f, f::regular10);
+        text_center(bb.Min + ImVec2(center, 308.f), "Enter your licence key to continue.", a(c::white48, login_alpha), 12.f, f::regular10);
 
-        //licence key
-        input(draw, key, bb.Min + ImVec2(32.f, 278.f), "d", "licence key", login_alpha);
+        //licence key, full width to match the action buttons
+        input(draw, key, bb.Min + ImVec2(16.f, 342.f), "d", "licence key", login_alpha, ImVec2(386.f, 38.f));
 
         const bool busy = loader::sign_in_busy();
         const std::string button_text = busy ? "Checking..." : "Continue";
 
         ImVec2 out_size = ImVec2(0, 0);
-        if (button(bb.Min + ImVec2(32.f, 326.f), button_text.c_str(), !busy, 56.f,
-            "g", login_alpha, "login_button", out_size, ImVec2(256.f, 30.f)))
+        if (button(bb.Min + ImVec2(16.f, 396.f), button_text.c_str(), !busy, 150.f,
+            "g", login_alpha, "login_button", out_size, ImVec2(386.f, 38.f)))
         {
             if (!busy)
             {
@@ -457,7 +454,7 @@ public:
         const std::string error = loader::auth_error();
         if (!busy && !error.empty())
         {
-            text_center(bb.Min + ImVec2(center, 370.f), error.c_str(), a(ImColor(255, 108, 110, 255), login_alpha), 12.f, f::regular10);
+            text_center(bb.Min + ImVec2(center, 452.f), error.c_str(), a(ImColor(255, 108, 110, 255), login_alpha), 12.f, f::regular10);
         }
 
         //advance as soon as the licence checks out
