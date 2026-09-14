@@ -16,9 +16,7 @@ public:
     virtual void end() = 0;
     virtual void destroy() = 0;
 
-    virtual std::string get_login() = 0;
-    virtual std::string get_password() = 0;
-    virtual std::string get_email() = 0;
+    virtual std::string get_key() = 0;
 };
 
 c_menu* create_menu();
