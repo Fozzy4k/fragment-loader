@@ -1,4 +1,4 @@
-﻿#define IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
 #include <imgui_internal.h>
 
@@ -350,21 +350,21 @@ public:
             for (; curr_game < (int)MGR->games.size(); curr_game++)
             {
                 auto& game_e = MGR->games.at(curr_game);
-                if (game(y, game_e, s_game == curr_game, (y + 76) < 240.f, anim))
+                if (game(y, game_e, s_game == curr_game, (y + 116) < 320.f, anim))
                 {
                     s_game = curr_game;
                 }
-                y += 76.f + 6.f;
+                y += 116.f + 8.f;
             }
             auto draw = ::GetWindowDrawList();
             const auto& p = ::GetWindowPos() + ImVec2(1.f, 1.f);
             const ImVec2& region = ::GetContentRegionMax() - ImVec2(2.f, 2.f);
 
-            //account panel, anchored to the bottom of the taller window
-            ImRect bb = ImRect(ImVec2(p.x, p.y + 430.f), ImVec2(p.x + region.x, p.y + region.y));
+            //account panel, anchored to the bottom of the window
+            ImRect bb = ImRect(ImVec2(p.x, p.y + 392.f), ImVec2(p.x + region.x, p.y + region.y));
             draw->AddRectFilled(bb.Min, bb.Max, a(c::bg, switch_screen_a->inverse()), 16.f, ImDrawFlags_RoundCornersBottom);
 
-            ImRect bbShadow = ImRect(ImVec2(p.x, p.y + 380.f), ImVec2(p.x + region.x, p.y + 430.f));
+            ImRect bbShadow = ImRect(ImVec2(p.x, p.y + 342.f), ImVec2(p.x + region.x, p.y + 392.f));
             int vert_start_idx = draw->VtxBuffer.Size;
             draw->AddRectFilled(bbShadow.Min, bbShadow.Max, IM_COL32_WHITE);
             int vert_end_idx = draw->VtxBuffer.Size;
@@ -373,22 +373,22 @@ public:
 
             //account summary
             const float center_x = p.x + region.x / 2.f;
-            text_center(ImVec2(center_x, p.y + 128.f), "welcome back", a(c::white, anim));
-            text_center(ImVec2(center_x, p.y + 152.f), ("key: " + loader::remaining_text() + " left").c_str(), a(c::white48, anim), 12.f, f::regular10);
-            text_center(ImVec2(center_x, p.y + 170.f), ("last updated: " + loader::last_updated_text()).c_str(), a(c::white48, anim), 12.f, f::regular10);
+            text_center(ImVec2(center_x, p.y + 168.f), "welcome back", a(c::white, anim), 16.f);
+            text_center(ImVec2(center_x, p.y + 194.f), ("key: " + loader::remaining_text() + " left").c_str(), a(c::white48, anim), 12.f, f::regular10);
+            text_center(ImVec2(center_x, p.y + 212.f), ("last updated: " + loader::last_updated_text()).c_str(), a(c::white48, anim), 12.f, f::regular10);
 
             //actions
             const bool can_load = loader::signed_in() && !switch_screen_a->active;
             ImVec2 out_size = ImVec2(0, 0);
-            if (button(bb.Min + ImVec2(16.f, 22.f), "Load", can_load, 122.f,
-                "B", anim, "load_button", out_size, ImVec2(288.f, 30.f)) && can_load)
+            if (button(bb.Min + ImVec2(16.f, 24.f), "Load", can_load, 160.f,
+                "B", anim, "load_button", out_size, ImVec2(386.f, 46.f)) && can_load)
             {
                 loader::begin(s_game, false);
                 next_screen = 3; switch_screen_a->active = true;
             }
 
-            if (button(bb.Min + ImVec2(16.f, 60.f), "Load with debugger", can_load, 84.f,
-                "C", anim, "debug_button", out_size, ImVec2(288.f, 30.f)) && can_load)
+            if (button(bb.Min + ImVec2(16.f, 82.f), "Load with debugger", can_load, 104.f,
+                "C", anim, "debug_button", out_size, ImVec2(386.f, 46.f)) && can_load)
             {
                 loader::begin(s_game, true);
                 next_screen = 3; switch_screen_a->active = true;

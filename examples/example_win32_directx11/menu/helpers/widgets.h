@@ -158,10 +158,15 @@ inline bool button(ImVec2 pos, const char* text, bool active, float off, const c
     ShadeVertsLinearGradY(draw, vert_start_idx, vert_end_idx,
         bb.Min, bb.Max, a(br1, ex_a), a(br2, ex_a));
 
-    if (icon_size > 0.f)
-        draw->AddText(f::icons10, 10.f, bb.Min + ImVec2(off, 10.f), lerp(c::white48, c::white, curr->val), icon);
+    // Vertical placement is derived from the resolved height so callers can pass
+    // any size2 without the label drifting off-centre.
+    const float icon_y = (size.y - 12.f) * 0.5f;
+    const float text_y = (size.y - 16.f) * 0.5f;
 
-    draw->AddText(f::medium12, 14.f, bb.Min + ImVec2(off + icon_size, 8.f), lerp(c::white48, c::white, curr->val), text);
+    if (icon_size > 0.f)
+        draw->AddText(f::icons10, 10.f, bb.Min + ImVec2(off, icon_y), lerp(c::white48, c::white, curr->val), icon);
+
+    draw->AddText(f::medium12, 14.f, bb.Min + ImVec2(off + icon_size, text_y), lerp(c::white48, c::white, curr->val), text);
 
     curr->active = active;
 
@@ -177,24 +182,24 @@ inline bool game(float y, game_t& game, bool active, bool can_use, float ex_a)
     auto draw = ::GetWindowDrawList();
     ImGuiWindow* window = ::GetCurrentWindow();
     const auto& p = ::GetWindowPos() + ImVec2(1.f, 1.f);
-    ImVec2 size = ImVec2(287.f, 76.f);
+    ImVec2 size = ImVec2(386.f, 116.f);
     ImVec2 pos = p + ImVec2(16.f, y);
     ImRect bb = ImRect(pos, pos + size);
 
-    draw->AddRectFilled(bb.Min, bb.Max, a(lerp(c::white2, c::white6, curr->val), ex_a), 8.f);
-    draw->AddRect(bb.Min, bb.Max, a(lerp(c::white1, c::white4, curr->val), ex_a), 8.f);
+    draw->AddRectFilled(bb.Min, bb.Max, a(lerp(c::white2, c::white6, curr->val), ex_a), 10.f);
+    draw->AddRect(bb.Min, bb.Max, a(lerp(c::white1, c::white4, curr->val), ex_a), 10.f);
 
-    draw->AddText(f::medium12, 14.f, bb.Min + ImVec2(116.f, 11.f), a(lerp(c::white48, c::white, curr->val), ex_a), game.label.c_str());
+    ImRect bbImg = ImRect(bb.Min + ImVec2(16.f, 16.f), bb.Min + ImVec2(16.f, 16.f) + ImVec2(128.f, 84.f));
+    draw->AddImageRounded(ImTextureID(game.img), bbImg.Min, bbImg.Max, ImVec2(0, 0), ImVec2(1, 1), a(c::white, max(curr->val, 0.48f) * ex_a), 6.f);
+    draw->AddRect(bbImg.Min, bbImg.Max, a(lerp(c::white12, c::white24, curr->val), ex_a), 6.f);
 
-    draw->AddText(f::regular10, 12.f, bb.Min + ImVec2(116.f, 11.f + 16.f), a(lerp(c::white12, c::white48, curr->val), ex_a), game.desc.c_str());
-
-    ImRect bbImg = ImRect(bb.Min + ImVec2(12.f, 12.f), bb.Min + ImVec2(12.f, 12.f) + ImVec2(92.f, 52.f));
-    draw->AddImageRounded(ImTextureID(game.img), bbImg.Min, bbImg.Max, ImVec2(0, 0), ImVec2(1, 1), a(c::white, max(curr->val, 0.48f) * ex_a), 4.f);
-    draw->AddRect(bbImg.Min, bbImg.Max, a(lerp(c::white12, c::white24, curr->val), ex_a), 4.f);
+    const float text_x = 16.f + 128.f + 18.f;
+    draw->AddText(f::medium12, 16.f, bb.Min + ImVec2(text_x, 22.f), a(lerp(c::white48, c::white, curr->val), ex_a), game.label.c_str());
+    draw->AddText(f::regular10, 13.f, bb.Min + ImVec2(text_x, 48.f), a(lerp(c::white12, c::white48, curr->val), ex_a), game.desc.c_str());
 
     if (game.updated)
     {
-        ImRect bbUpd = ImRect(bb.Min + ImVec2(228.f, 8.f), bb.Min + ImVec2(228.f, 8.f) + ImVec2(49.f, 17.f));
+        ImRect bbUpd = ImRect(bb.Min + ImVec2(306.f, 16.f), bb.Min + ImVec2(306.f, 16.f) + ImVec2(64.f, 20.f));
         //bg
         ImColor bg1 = lerp(c::white6, c::grad.f, curr->val);
         ImColor bg2 = lerp(c::white6, c::grad.s, curr->val);
@@ -213,7 +218,7 @@ inline bool game(float y, game_t& game, bool active, bool can_use, float ex_a)
         ShadeVertsLinearGradY(draw, vert_start_idx, vert_end_idx,
             bbUpd.Min, bbUpd.Max, a(br1, ex_a), a(br2, ex_a));
 
-        draw->AddText(f::medium8, 10.f, bbUpd.Min + ImVec2(7.f, 3.0f), a(lerp(c::white48, c::white, curr->val), ex_a), "Updated");
+        draw->AddText(f::medium8, 11.f, bbUpd.Min + ImVec2(10.f, 4.f), a(lerp(c::white48, c::white, curr->val), ex_a), "Updated");
     }
 
     curr->active = active;
