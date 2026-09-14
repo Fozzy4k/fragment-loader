@@ -463,7 +463,7 @@ namespace loader
 
                 // Watch for the ready line with a bounded timeout so a silent
                 // failure (bad session, wrong client version) still reports.
-                const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(45);
+                const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(25);
                 std::string collected;
                 char buffer[512];
                 DWORD available = 0;
@@ -493,11 +493,21 @@ namespace loader
                         return true;
                     }
                 }
+                // Marker not seen. A still-running fragment is the outcome we want
+                // (older payloads never print it), so only a dead process is a
+                // real failure.
+                DWORD exit_code = 0;
+                const bool alive = ::GetExitCodeProcess(process.hProcess, &exit_code) != 0 && exit_code == STILL_ACTIVE;
+
                 ::CloseHandle(read_pipe);
                 ::CloseHandle(process.hThread);
                 ::CloseHandle(process.hProcess);
 
-                set_error("fragment did not report ready - try Load with debugger");
+                if (alive)
+                {
+                    return true;
+                }
+                set_error("fragment exited before it finished loading - try Load with debugger");
                 return false;
             }
 
@@ -533,7 +543,7 @@ namespace loader
             {
                 std::lock_guard lock(g.mutex);
                 g.close_when_done.store(true);
-                g.close_at = std::chrono::steady_clock::now() + std::chrono::milliseconds(1400);
+                g.close_at = std::chrono::steady_clock::now() + std::chrono::milliseconds(2500);
             }
         }
     }
